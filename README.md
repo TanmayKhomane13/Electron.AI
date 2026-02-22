@@ -224,6 +224,7 @@ Designed to enable **quick and intelligent grid-level decision making.**
 <img src="screenshots/3.png" width="800">
 <img src="screenshots/4.png" width="800">
 <img src="screenshots/5.png" width="800">
+<img src="screenshots/6.png" width="800">
 
 <br><br>
 
