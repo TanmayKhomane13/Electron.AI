@@ -118,25 +118,42 @@
 
         <!-- CONTROLS -->
         <section class="glass-panel rounded-2xl p-6 mb-8 transition-all duration-300 hover:border-zinc-700">
-            <div class="flex flex-col sm:flex-row items-end gap-4">
-                <div class="w-full sm:w-64">
-                    <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Forecast Horizon</label>
-                    <div class="relative">
-                        <select id="horizonSelect" class="w-full appearance-none bg-vega-dark border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 transition-all cursor-pointer">
-                            <option value="" disabled selected>Select hours ahead...</option>
-                            <!-- Options injected via JS -->
-                        </select>
-                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-400">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                        </div>
-                    </div>
+    <div class="flex flex-col sm:flex-row items-end gap-4">
+        <div class="w-full sm:w-64">
+            <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Forecast Horizon</label>
+            <div class="relative">
+                <select id="horizonSelect" class="w-full appearance-none bg-vega-dark border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 transition-all cursor-pointer">
+                    <option value="" disabled selected>Select hours ahead...</option>
+                    <!-- Options injected via JS -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-zinc-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 </div>
-                <button id="predictBtn" class="w-full sm:w-auto px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-xl shadow-[0_0_15px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)] transition-all duration-300 flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                    Run Prediction
-                </button>
             </div>
-        </section>
+        </div>
+        
+        <!-- ADD THIS NEW INPUT HERE -->
+        <div class="w-full sm:w-48">
+            <label class="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Last Hour Load</label>
+            <div class="relative">
+                <input type="number" id="lastHourLoad" step="0.01" min="1000" max="3000" 
+                       class="w-full bg-vega-dark border border-zinc-800 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 transition-all pr-12" 
+                       placeholder="e.g. 1650.5" value="1650.5">
+                <div class="absolute inset-y-0 right-0 flex items-center px-3 text-zinc-400 pointer-events-none">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <button id="predictBtn" class="w-full sm:w-auto px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold rounded-xl shadow-[0_0_15px_rgba(234,179,8,0.2)] hover:shadow-[0_0_25px_rgba(234,179,8,0.4)] transition-all duration-300 flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            Run Prediction
+        </button>
+    </div>
+</section>
+
 
         <!-- LOADER -->
         <div id="loading" class="hidden flex-col items-center justify-center py-20">
@@ -327,7 +344,10 @@
                 const response = await fetch("/api/forecast", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ horizon })
+                    body: JSON.stringify({ 
+                        horizon, 
+                        last_hour_load: parseFloat(document.getElementById('lastHourLoad').value) || 1650.5 
+                    })
                 });
                 if(!response.ok) throw new Error("API Route missing");
                 data = await response.json();

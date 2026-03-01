@@ -18,7 +18,7 @@ CORS(app)
 # Load Electricity Model
 # -----------------------------------
 
-MODEL_PATH = "ml_models/demand_load_model.pkl"
+MODEL_PATH = "../web/ml_models/electricity_pred_model.pkl"
 
 try:
     with open(MODEL_PATH, "rb") as f:
@@ -44,21 +44,12 @@ TRANSFORMER_COORDS = {
     "T4-Kurla": (19.0760, 72.8774)
 }
 
-
-
-
 # -----------------------------------
 # Routes
 # -----------------------------------
-
-
-
 @app.route("/")
 def home():
     return send_from_directory("static", "index.html")
-
-
-
 
 @app.route("/api/forecast", methods=["POST"])
 def forecast_load():
@@ -67,25 +58,20 @@ def forecast_load():
         horizon = int(data.get("horizon", 3))
         horizon = min(max(horizon, 1), 24)  # limit 1–24 hrs
 
-
+        initial_load = float(data.get("last_hour_load", 2800))
 
         # Get weather forecast
         weather_data = get_mumbai_weather(horizon)
-
-
 
         # Get load predictions (sequential)
         predictions = predict_load(
             horizon,
             weather_data["temps"],
-            weather_data["hums"]
+            weather_data["hums"],
+            initial_load = initial_load
         )
 
-
-
         peak_alert = max(predictions.values()) > 3500
-
-
 
         return jsonify({
             "success": True,
@@ -273,9 +259,6 @@ def predict_load_custom_seed(horizon, temps, hums, initial_load=2800):
             is_weekend = 1 if day_of_week >= 5 else 0
     
     return predictions
-
-
-
 
 # -----------------------------------
 # Run Server
