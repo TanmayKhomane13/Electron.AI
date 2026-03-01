@@ -64,11 +64,11 @@ def forecast_load():
         weather_data = get_mumbai_weather(horizon)
 
         # Get load predictions (sequential)
-        predictions = predict_load(
+        predictions = predict_load_custom_seed(
             horizon,
             weather_data["temps"],
             weather_data["hums"],
-            initial_load = initial_load
+            initial_load=initial_load
         )
 
         peak_alert = max(predictions.values()) > 3500
@@ -118,18 +118,17 @@ def get_transformer_status(horizon):
             )
             
             peak_forecast = max(predictions.values())
-            overload_pct = max(0, ((peak_forecast / t["capacity"]) * 100) - 100)
+            utilization =  ((peak_forecast / t["capacity"]) * 100)
             
             # Risk & recommendations
-            if overload_pct > 20:
+            if utilization > 105:
                 risk = "high"
-                recs = ["IMMEDIATE: Shed 10-15% load", "Emergency cooling ON", "Reroute to spares", "Notify MERC"]
-            elif overload_pct > 10:
+            elif utilization > 95:
                 risk = "medium"
-                recs = ["Balance feeder loads", "Aux cooling START", "Alert substation team"]
+            elif utilization > 85:
+                risk = "warning"
             else:
                 risk = "low"
-                recs = ["Continue monitoring", "Daily log"]
             
             status.append({
                 "name": t["name"],
@@ -138,9 +137,8 @@ def get_transformer_status(horizon):
                 "current_load": t["current_load"],
                 "transformer_peak": round(peak_forecast, 1),
                 "first_hour_temp": round(weather_data["temps"][0], 1),
-                "overload_pct": round(overload_pct, 1),
+                "utilization": round(utilization, 1),
                 "risk": risk,
-                "recommendations": recs
             })
         
         overall_risk = "high" if any(s["risk"] == "high" for s in status) else "medium" if any(s["risk"] == "medium" for s in status) else "low"
@@ -230,34 +228,60 @@ def predict_load(horizon, temps, hums):
 def predict_load_custom_seed(horizon, temps, hums, initial_load=2800):
     """
     YOUR EXACT MODEL but with custom starting load (for transformers!)
+    Feature order EXACTLY matches training:
+    [hour_of_day, day_of_week, is_weekend, is_holiday,
+     temperature, humidity, t-1]
     """
+
     now = datetime.now()
     hour = now.hour
     day_of_week = now.weekday()
     is_weekend = 1 if day_of_week >= 5 else 0
-    
+    is_holiday = 0  # Placeholder (can integrate real holiday logic later)
+
     predictions = {}
-    previous_load = initial_load  # TRANSFORMER-SPECIFIC!
-    
+    previous_load = initial_load  # This is t-1
+
     for h in range(1, horizon + 1):
+
         i = min(h - 1, len(temps) - 1)
         temp = temps[i]
         hum = hums[i]
-        
-        # YOUR exact feature vector
-        X = np.array([[hour, day_of_week, is_weekend, previous_load, temp, hum]])
+
+        # EXACT training feature order
+        X = np.array([[ 
+            hour,            # hour_of_day
+            day_of_week,     # day_of_week
+            is_weekend,      # is_weekend
+            is_holiday,      # is_holiday
+            temp,            # temperature
+            hum,             # humidity
+            previous_load    # t-1  (MUST BE LAST)
+        ]])
+
+        # Normalize
         X_norm = model_data["scaler_X"].transform(X)
+
+        # Linear model forward pass
         y_norm = np.dot(X_norm, model_data["w"]) + model_data["b"]
-        load = model_data["scaler_y"].inverse_transform(y_norm.reshape(1, -1))[0][0]
-        
+
+        # Inverse scale
+        load = model_data["scaler_y"].inverse_transform(
+            y_norm.reshape(1, -1)
+        )[0][0]
+
         predictions[f"load_lag_t+{h}"] = round(float(load), 1)
-        previous_load = load  # Chain forward
-        
+
+        # Update lag (autoregressive chaining)
+        previous_load = load
+
+        # Update time features
         hour = (hour + 1) % 24
         if hour == 0:
             day_of_week = (day_of_week + 1) % 7
             is_weekend = 1 if day_of_week >= 5 else 0
-    
+            is_holiday = 0  # keep simple
+
     return predictions
 
 # -----------------------------------
