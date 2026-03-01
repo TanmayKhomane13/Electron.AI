@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Scikit--Learn-ML-orange?logo=scikitlearn">
   <img src="https://img.shields.io/badge/Pandas-Data-green?logo=pandas">
   <img src="https://img.shields.io/badge/NumPy-Computing-blue?logo=numpy">
-  <img src="https://img.shields.io/badge/MAE-100.39MW-brightgreen">
+  <img src="https://img.shields.io/badge/MAE-86.23MW-brightgreen">
 </p>
 
 > **Weather-aware, time-synchronized electricity demand forecasting system built for smart grid automation**
@@ -76,7 +76,8 @@ It learns relationships like:
 - Weekend indicator  
 - Holiday indicator  
 - Temperature  
-- Humidity  
+- Humidity
+- Last Hour Demand (t - 1)
 
 ### Output Targets
 
@@ -87,8 +88,8 @@ It learns relationships like:
 - Load at t + 24 hours  
 
 ⚠️ Note:  
-This version does **not yet include autoregressive lag features (t-1, t-2, etc.)**.  
-Lag-based learning will be introduced in the next model iteration.
+This version **includes autoregressive lag features (t-1 load input)** for sequential forecasting.  
+Future iterations will expand to multiple lag features (t-2, t-3, etc.) for enhanced model accuracy.
 
 ---
 
@@ -127,20 +128,20 @@ All experimentation and evaluation were performed independently.
 
 | Metric | Value |
 |--------|--------|
-| **MAE** | **100.39 MW** |
+| **MAE** | **86.23 MW** |
 | Forecast Horizon | 1, 2, 3 & upto 24 Hours |
 
 ---
 
-## 📌 What 100.39 MW MAE Means
+## 📌 What 86.23 MW MAE Means
 
 On average, predictions deviate by:
 
-> **100.39 MW from actual electricity demand**
+> **86.23 MW from actual electricity demand**
 
 For grids operating between **2000–4000 MW**, this corresponds to:
 
-⚡ Approximately **2–5% forecasting error**
+⚡ Approximately **2–4% forecasting error**
 
 This is considered efficient for short-term load forecasting systems using exogenous variables trained on historical data.
 
@@ -160,7 +161,7 @@ Meaning:
 Admin workflow:
 
 ```
-Start Predicting → Enter Horizon → Instant Forecast Curve + Metrics
+Start Predicting → Enter Horizon and Last Hour Load → Instant Forecast Curve + Metrics
 ```
 
 ---
@@ -169,16 +170,23 @@ Start Predicting → Enter Horizon → Instant Forecast Curve + Metrics
 
 ### 🖥 Core Technologies
 
-- 🐍 **Python**  
-- 🔢 **NumPy**  
-- 📊 **Matplotlib**  
-- 🐼 **Pandas**  
-- 🤖 **Scikit-Learn**
+<p align="center"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg" width="90" height="90" alt="Python"/> &nbsp;&nbsp;&nbsp; <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/numpy/numpy-original.svg" width="90" height="90" alt="NumPy"/> &nbsp;&nbsp;&nbsp; <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/pandas/pandas-original.svg" width="90" height="90" alt="Pandas"/> &nbsp;&nbsp;&nbsp; <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/matplotlib/matplotlib-original.svg" width="90" height="90" alt="Matplotlib"/> &nbsp;&nbsp;&nbsp; <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/scikitlearn/scikitlearn-original.svg" width="90" height="90" alt="Scikit-Learn"/> </p>
 
 ### 🌐 Additional Components
 
-- 🚀 **Flask** (Backend API)  
-- 🌦 **OpenWeather API** (Live weather integration)
+<p align="center">
+  <img 
+    src="https://cdn.simpleicons.org/flask/white"
+    height="70"
+    alt="Flask"
+  />
+  &nbsp;&nbsp;&nbsp;
+  <img 
+    src="https://openweathermap.org/themes/openweathermap/assets/img/logo_white_cropped.png"
+    height="70"
+    alt="OpenWeather API"
+  />
+</p>
 
 ---
 
@@ -239,8 +247,7 @@ Designed to enable **quick and intelligent grid-level decision making.**
 
 We are actively working on:
 
-- Introducing autoregressive lag features (t-1 → t+1 learning)  
-- Improving MAE beyond 100.39 MW  
+- Improving MAE beyond 86.23MW
 - Implementing smart peak-load alerts  
 - Enabling real-time smart meter streaming  
 
